@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addFunction;
@@ -10,20 +11,36 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final nameController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController();
+  DateTime _pickedDate;
 
-  final priceController = TextEditingController();
+  void _submitData() {
+    final enteredTitle = _nameController.text;
+    final enteredPrice = double.parse(_priceController.text);
 
-  void submitData() {
-    final enteredTitle = nameController.text;
-    final enteredPrice = double.parse(priceController.text);
-
-    if (enteredTitle.isEmpty || enteredPrice <= 0) {
+    if (enteredTitle.isEmpty || enteredPrice <= 0 || _pickedDate == null) {
       return;
     }
 
-    widget.addFunction(enteredTitle, enteredPrice);
+    widget.addFunction(enteredTitle, enteredPrice, _pickedDate);
     Navigator.of(context).pop();
+  }
+
+  void _datePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2019),
+      lastDate: DateTime.now(),
+    ).then((pickedData) {
+      if (pickedData == null) {
+        return;
+      }
+      setState(() {
+        _pickedDate = pickedData;
+      });
+    });
   }
 
   @override
@@ -37,17 +54,39 @@ class _NewTransactionState extends State<NewTransaction> {
           children: [
             TextField(
               decoration: InputDecoration(labelText: 'Название'),
-              controller: nameController,
-              onSubmitted: (_) => submitData(),
+              controller: _nameController,
+              onSubmitted: (_) => _submitData(),
             ),
             TextField(
               decoration: InputDecoration(labelText: 'Цена'),
-              controller: priceController,
+              controller: _priceController,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => submitData(),
+              onSubmitted: (_) => _submitData(),
             ),
-            TextButton(
-              onPressed: submitData,
+            Container(
+              height: 70,
+              child: Row(
+                children: [
+                  Text(
+                    _pickedDate == null
+                        ? 'дата не выбрана'
+                        : 'Выбранная дата: ${DateFormat.yMd().format(_pickedDate)}',
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: TextButton(
+                      onPressed: _datePicker,
+                      child: Text(
+                        'Выбрать дату',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _submitData,
               child: Text('Создать'),
             ),
           ],

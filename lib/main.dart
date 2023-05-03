@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.green,
           accentColor: Colors.amber,
+          errorColor: Colors.red,
           fontFamily: 'Montserrat'),
       home: MyHomePage(),
     );
@@ -40,6 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //     dateTime: DateTime.now(),
     //   ),
   ];
+
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((element) {
       return element.dateTime.isAfter(
@@ -50,15 +52,23 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addNewTransaction(String txName, double txPrice) {
+  void _addNewTransaction(String txName, double txPrice, DateTime chosenDate) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         name: txName,
-        dateTime: DateTime.now(),
+        dateTime: chosenDate,
         price: txPrice);
 
     setState(() {
       _userTransactions.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) {
+        return tx.id == id;
+      });
     });
   }
 
@@ -94,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Chart(_recentTransactions),
-            TransactionWidget(_userTransactions),
+            TransactionWidget(_userTransactions, _deleteTransaction),
           ],
         ),
       ),
